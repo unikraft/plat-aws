@@ -31,7 +31,7 @@ Eg, ./deploy-unikraft-aws.sh (If the script is in current dir)
 
 
 ## Usage
-Please make sure that you have a working digitalocean account.  
+Please make sure that you have a working AWS account.  
 If not, please create one (click [here](https://aws.amazon.com/)).
  
 
