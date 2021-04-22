@@ -18,7 +18,8 @@ END="\e[0m"
 
 # Default Values to be taken if not provided to the script.
 NAME=unikraft
-BUCKET=unikraft-bucket
+# Never put a minus for the bucket name!
+BUCKET=unikraft
 REGION=eu-central-1
 INSTYPE=m3.medium
 CONFIG_FILE=config-aws.sh
