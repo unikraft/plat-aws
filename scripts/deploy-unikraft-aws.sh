@@ -216,25 +216,22 @@ echo -n "Uploading bundle to cloud...............";
 log_pause
 # This echo maintains the formatting
 echo ""
-ec2-upload-bundle -b ${BUCKET} -m ${TMP_DIR}/${IMG}.manifest.xml -a ${AWS_ACCESS_KEY} -s ${AWS_SECRET_KEY} --location ${REGION}
+ec2-upload-bundle -b ${BUCKET} -m ${TMP_DIR}/${IMG}.manifest.xml -a ${AWS_ACCESS_KEY} -s ${AWS_SECRET_KEY} --region ${REGION}
 log_resume
 echo -e "${GREEN}[OK]${END}"
 echo -n "Registering image on the cloud.........."
 log_pause
 # This echo maintains the formatting
 echo ""
-amiID=`ec2-register ${BUCKET}/${IMG}.manifest.xml -n ${NAME} -O ${AWS_ACCESS_KEY} -W ${AWS_SECRET_KEY} --region ${REGION} | awk '{print $2}'`
-echo "AWS AMI ID: ${amiID}"
+aws ec2 register-image --image-location ${BUCKET}/${IMG}.manifest.xml --architecture ${ARCH} --name ${NAME} --virtualization-type paravirtual
 log_resume
 echo -e "${GREEN}[OK]${END}"
 
-if [ -z "$S" ]
-then
-	clean
-	echo ""
-	echo "To run the instance on AWS, use following command-"
-	echo -e "${GRAY_BG}insID=\`ec2-run-instances ${amiID} --region ${REGION} -k ukraft-key-eu -t ${INSTYPE} | awk 'FNR == 2 {print $2}'\`${END}"
-	insID="<insID>"
+clean
+echo ""
+echo "To run the instance on AWS, use following command-"
+echo -e "${GRAY_BG}insID=\`aws ec2 run-instances --region ${REGION} --image-id <ami-ID> --count 1 --instance-type ${INSTYPE} | awk 'FNR == 2 {print $2}'\`${END}"
+insID="<insID>"
 else
     echo -n "Starting the instance on the cloud......"
 	log_pause
@@ -250,7 +247,7 @@ fi
 echo ""
 echo -e "${UNDERLINE}NOTE:${END}"
 echo "1) To see the AWS system console log, use following command-"
-echo -e "${GRAY_BG}aws ec2 get-console-output --instance-id ${insID} --query Output --output text --region ${REGION}${END}"
+echo -e "${GRAY_BG}aws ec2 get-console-output --instance-id <ins ID> --query Output --output text --region ${REGION}${END}"
 echo "2) AWS takes some time to initialise the instance and start the booting process"
 # AWS changes required
 echo "3) Don't forget to customise this with a security group, as the
