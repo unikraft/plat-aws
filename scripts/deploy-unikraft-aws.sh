@@ -136,7 +136,8 @@ fi
 
 # Make name unique to avoid registration clashes
 NAME=${NAME}-`date +%s`
-MNT=/tmp/unikraft
+MNT_DIR=$( mktemp -d )
+TMP_DIR=$( mktemp -d )
 SUDO=sudo
 IMG=${NAME}.img
 
@@ -165,16 +166,16 @@ echo -e "${GREEN}[OK]${END}"
 
 
 # Create the image disk
-${SUDO} mkdir -p ${MNT}
+${SUDO} mkdir -p ${MNT_DIR}
 rm -f ${IMG}
-echo -n "Creating Disk Image.....................";
+echo -n "Creating Disk Image (4MB)...............";
 log_pause
 # This echo maintains the formatting
 echo ""
-dd if=/dev/zero of=${IMG} bs=1M count=5
-${SUDO} mke2fs -F -j ${IMG}
-${SUDO} mount -o loop ${IMG} ${MNT}
-${SUDO} mkdir -p ${MNT}/boot/grub
+dd if=/dev/zero of=${TMP_DIR}/${IMG} bs=1M count=4
+${SUDO} mke2fs -F -j ${TMP_DIR}/${IMG}
+${SUDO} mount -o loop ${TMP_DIR}/${IMG} ${MNT_DIR}
+${SUDO} mkdir -p ${MNT_DIR}/boot/grub
 
 # Create menu.lst (grub) file
 cat > menu.lst << EOF
@@ -182,21 +183,18 @@ default 0
 timeout 0
 title Unikraft
  root (hd0)
- kernel /boot/unikraft.gz
+ kernel /boot/kernel
 EOF
-${SUDO} mv menu.lst ${MNT}/boot/grub/menu.lst
-${SUDO} sh -c "gzip -c $UNIKERNEL > ${MNT}/boot/unikraft.gz"
-${SUDO} umount -d ${MNT}
+${SUDO} mv menu.lst ${MNT_DIR}/boot/grub/menu.lst
+${SUDO} sh -c "cp -v $UNIKERNEL ${MNT_DIR}/boot/kernel"
+${SUDO} umount -d ${MNT_DIR}
 log_resume
 echo -e "${GREEN}[OK]${END}"
-# Remove the temporary directory if old one already exists and create the new one
-rm -rf ${TMP_DIR}
-mkdir ${TMP_DIR}
 echo -n "Creating image bundle...................";
 log_pause
 # This echo maintains the formatting
 echo ""
-ec2-bundle-image -i ${IMG} -k ${EC2_PRIVATE_KEY} -c ${EC2_CERT} -u ${EC2_USER} -d ${TMP_DIR} -r ${ARCH} --kernel ${KERNEL}
+ec2-bundle-image -i ${TMP_DIR}/${IMG} -k ${EC2_PRIVATE_KEY} -c ${EC2_CERT} -u ${EC2_USER} -d ${TMP_DIR} -r ${ARCH} --kernel ${KERNEL}
 log_resume
 echo -e "${GREEN}[OK]${END}"
 # Upload the bundle to the AWS cloud (i.e. to S3)
