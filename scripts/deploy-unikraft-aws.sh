@@ -2,7 +2,7 @@
 # This script automates the process of deploying unikraft built images
 # to AWS EC2 service.
 # !!!!! IMPORTANT !!!!
-# This script needs all the environmrntal variables mentioned in the
+# This script needs all the environmental variables mentioned in the
 # "config-aws.sh" file to be set correctly. Any unset value or
 # incorrect value will cause the script to halt.
 
